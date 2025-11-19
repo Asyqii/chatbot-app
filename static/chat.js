@@ -65,7 +65,13 @@ function sendMessage() {
 		const [target, ...msgParts] = message.substring(1).split(' ');
 		const privateMsg = msgParts.join(' ');
 
-		if (privateMsg) {
+        // Special case for bot
+        if (target.toLowerCase() === 'bot') {
+             socket.emit('message', {
+                msg: message,
+                room: currentRoom,
+            });
+        } else if (privateMsg) {
 			socket.emit('message', {
 				msg: privateMsg,
 				type: 'private',
@@ -115,9 +121,8 @@ function handleKeyPress(event) {
 }
 
 // Initialize chat when page loads
-let chat;
 document.addEventListener('DOMContentLoaded', () => {
-	chat = new ChatApp();
+	// Request notification permission
 	if ('Notification' in window) {
 		Notification.requestPermission();
 	}

@@ -149,6 +149,13 @@ def on_leave(data: dict):
     except Exception as e:
         logger.error(f"Leave room error: {str(e)}")
 
+    except Exception as e:
+        logger.error(f"Message handling error: {str(e)}")
+
+# Initialize Offline Chatbot
+from offline_bot import OfflineChatbot
+chatbot = OfflineChatbot()
+
 @socketio.on('message')
 def handle_message(data: dict):
     try:
@@ -195,6 +202,22 @@ def handle_message(data: dict):
             }, room=room)
             
             logger.info(f"Message sent in {room} by {username}")
+
+            # Check for bot trigger
+            if message.lower().startswith('@bot'):
+                # Remove '@bot' from the message
+                user_query = message[4:].strip()
+                bot_response = chatbot.get_response(user_query)
+                
+                # Send bot response
+                emit('message', {
+                    'msg': bot_response,
+                    'username': 'Bot',
+                    'room': room,
+                    'timestamp': datetime.now().isoformat()
+                }, room=room)
+                
+                logger.info(f"Bot responded to {username} in {room}")
     
     except Exception as e:
         logger.error(f"Message handling error: {str(e)}")
